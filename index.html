@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecta Quiz - Earn as you Learn</title>
+    <style>
+        /* --- Universal Styles & Fonts --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #4a148c; /* Deep Purple */
+            --secondary-color: #8e24aa; /* Lighter Purple */
+            --accent-color: #fdd835; /* Yellow */
+            --correct-color: #4caf50; /* Green */
+            --incorrect-color: #f44336; /* Red */
+            --light-text: #f3e5f5;
+            --dark-text: #333;
+            --bg-color: #f3e5f5;
+            --container-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--dark-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #app-container {
+            width: 100%;
+            max-width: 900px;
+            min-height: 95vh;
+            background: var(--container-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- Logo --- */
+        #logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #logo-svg {
+            width: 50px;
+            height: 50px;
+        }
+
+        #logo-container h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        /* --- Screen Management --- */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* --- Buttons & Inputs --- */
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            min-width: 150px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        
+        .btn-secondary {
+            background: var(--accent-color);
+            color: var(--dark-text);
+        }
+
+        .btn-secondary:hover {
+             background: #fbc02d;
+        }
+
+        input[type="text"], input[type="password"], input[type="email"], input[type="number"] {
+            width: 100%;
+            max-width: 350px;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-container h2 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .link {
+            color: var(--secondary-color);
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 15px;
+            display: inline-block;
+        }
+
+        /* --- Auth Screen --- */
+        #auth-screen .form-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        #auth-screen .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #aaa;
+            cursor: pointer;
+            padding-bottom: 5px;
+            border-bottom: 3px solid transparent;
+        }
+        
+        #auth-screen .toggle-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* --- Dashboard --- */
+        #dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        #user-info, #wallet {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        #user-info h3, #wallet h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+        #user-info span, #wallet span {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        #naira-equivalent {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        #logout-btn {
+            background: none;
+            border: 1px solid var(--secondary-color);
+            color: var(--secondary-color);
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #logout-btn:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* --- Quiz Area --- */
+        #quiz-container {
+            width: 100%;
+            padding: 20px;
+        }
+        
+        #quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        #timer {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            background: var(--accent-color);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #question-text {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            min-height: 80px;
+        }
+
+        #options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .option {
+            background-color: #f1f1f1;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option:hover {
+            background-color: #e0e0e0;
+            border-color: var(--secondary-color);
+        }
+        
+        .option.correct {
+            background-color: var(--correct-color);
+            border-color: var(--correct-color);
+            color: white;
+            animation: pulse 0.5s;
+        }
+        .option.incorrect {
+            background-color: var(--incorrect-color);
+            border-color: var(--incorrect-color);
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- Instructions & Results --- */
+        .content-box {
+            background: #fafafa;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            border: 1px solid #eee;
+        }
+        .content-box h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        .content-box p, .content-box ul {
+            text-align: left;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+        .content-box ul {
+            padding-left: 20px;
+        }
+        
+        #phase-result-message {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        #phase-result-score {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        /* --- Bubble Animation --- */
+        #bubble-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(253, 216, 53, 0.5); /* Semi-transparent yellow */
+            border-radius: 50%;
+            animation: rise 4s ease-in-out forwards;
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-100vh) scale(0.5);
+            }
+        }
+
+        /* --- Admin --- */
+        #admin-link {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        
+        #admin-dashboard-screen table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        #admin-dashboard-screen th, #admin-dashboard-screen td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #admin-dashboard-screen th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        /* --- Responsive Design --- */
+        @media (min-width: 768px) {
+            #options-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            #app-container {
+                padding: 40px;
+            }
+            #dashboard-header {
+                 padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #logo-container h1 {
+                font-size: 1.8rem;
+            }
+            #logo-svg {
+                width: 40px;
+                height: 40px;
+            }
+            #dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <div id="logo-container">
+            <svg id="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M50 0C22.3858 0 0 22.3858 0 50C0 77.6142 22.3858 100 50 100C77.6142 100 100 77.6142 100 50C100 22.3858 77.6142 0 50 0ZM50 8C26.8173 8 8 26.8173 8 50C8 73.1827 26.8173 92 50 92C73.1827 92 92 73.1827 92 50C92 26.8173 73.1827 8 50 8Z" fill="url(#grad)"/>
+                <path d="M62.5 25H37.5V37.5H50V62.5H62.5V25Z" fill="url(#grad)"/>
+                <defs>
+                    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#4a148c"/>
+                        <stop offset="100%" stop-color="#8e24aa"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <h1>Lecta Quiz</h1>
+        </div>
+
+        <div id="bubble-container"></div>
+        
+        <!-- Main Application Screens -->
+        <main id="app-main">
+            <!-- AUTH SCREEN -->
+            <div id="auth-screen" class="screen">
+                <div class="form-container">
+                    <div class="form-toggle">
+                        <button id="show-login-btn" class="toggle-btn active">Login</button>
+                        <button id="show-signup-btn" class="toggle-btn">Sign Up</button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form id="login-form">
+                        <h2>Welcome Back!</h2>
+                        <p id="login-error" class="error-msg"></p>
+                        <input type="text" id="login-username" placeholder="Username" required>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <button type="submit" class="btn">Login</button>
+                        <p class="link" onclick="alert('Password reset functionality is under development.')">Forgot Password?</p>
+                    </form>
+
+                    <!-- Signup Form -->
+                    <form id="signup-form" style="display: none;">
+                        <h2>Create Your Account</h2>
+                        <p id="signup-error" class="error-msg"></p>
+                        <input type="text" id="signup-username" placeholder="Username" required>
+                        <input type="password" id="signup-password" placeholder="Password" required>
+                        <input type="password" id="signup-password-confirm" placeholder="Confirm Password" required>
+                        <button type="submit" class="btn">Sign Up</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- INSTRUCTIONS SCREEN -->
+            <div id="instructions-screen" class="screen">
+                <div class="content-box">
+                    <h2>Quiz Instructions</h2>
+                    <p>Welcome to Lecta Quiz! Here's how it works:</p>
+                    <ul>
+                        <li>The quiz has <strong>20 phases</strong>, with <strong>20 questions</strong> in each phase.</li>
+                        <li>You have <strong>60 seconds</strong> to answer each question.</li>
+                        <li>To pass a phase and unlock the next one, you must score at least <strong>50% (10 correct answers)</strong>.</li>
+                        <li>If you fail a phase, you must retake it to proceed.</li>
+                        <li>For each phase you pass, your wallet will be credited with <strong>$5.00</strong>.</li>
+                        <li>Complete all 20 phases to earn a total of <strong>$100.00</strong>!</li>
+                        <li>You can request a withdrawal after completing <strong>5 phases ($25)</strong>.</li>
+                    </ul>
+                    <button id="start-quiz-btn" class="btn">Let's Go!</button>
+                </div>
+            </div>
+            
+            <!-- DASHBOARD & QUIZ SCREEN -->
+            <div id="dashboard-screen" class="screen">
+                <header id="dashboard-header">
+                    <div id="user-info">
+                        <h3>Welcome, <span id="dash-username"></span></h3>
+                        <p>Current Phase: <span id="dash-phase"></span></p>
+                    </div>
+                    <div id="wallet">
+                        <h3>WALLET BALANCE</h3>
+                        <span id="dash-balance">$0.00</span>
+                        <p id="naira-equivalent">(~ ₦0.00)</p>
+                    </div>
+                    <button id="logout-btn">Logout</button>
+                </header>
+
+                <div id="dashboard-content">
+                     <!-- This will show phase info or withdrawal button -->
+                </div>
+                
+                <div id="quiz-container" style="display: none;">
+                    <div id="quiz-header">
+                       <h3 id="question-counter">Question 1/20</h3>
+                       <div id="timer">60</div>
+                    </div>
+                    <p id="question-text">Question text will appear here.</p>
+                    <div id="options-container">
+                        <!-- Options will be generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHASE RESULT SCREEN -->
+            <div id="phase-result-screen" class="screen">
+                 <div class="content-box">
+                    <h2 id="phase-result-message"></h2>
+                    <p id="phase-result-score"></p>
+                    <p id="phase-result-info"></p>
+                    <button id="next-phase-btn" class="btn"></button>
+                </div>
+            </div>
+            
+            <!-- WITHDRAWAL SCREEN -->
+            <div id="withdrawal-screen" class="screen">
+                <div class="content-box form-container">
+                    <h2>Withdraw Your Earnings</h2>
+                    <p>Please provide your Nigerian bank account details below. A <strong>₦1,000</strong> charge for VAT and dollar conversion fee is required.</p>
+                    <p style="color:var(--incorrect-color); font-weight: 600;">Please recharge the phone number 08012345678 with ₦1,000 airtime to cover this fee, failure to recharge with your registered line, your payment wouldn't be processed after submission.</p>
+                    
+                    <form id="withdrawal-form">
+                        <input type="text" id="bank-name" placeholder="Bank Name" required>
+                        <input type="number" id="account-number" placeholder="Account Number" required>
+                        <input type="text" id="account-name" placeholder="Account Name" required>
+                        <input type="email" id="user-email" placeholder="Your Email" required>
+                        <input type="text" id="user-phone" placeholder="Your Phone Number" required>
+                        <button type="submit" class="btn">Submit for Review</button>
+                        <button type="button" id="back-to-dash-btn" class="btn btn-secondary">Back to Dashboard</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- FINAL COMPLETION SCREEN -->
+            <div id="final-completion-screen" class="screen">
+                 <div class="content-box">
+                    <h2>Congratulations!</h2>
+                    <p>You have successfully completed all 20 phases of the Lecta Quiz. Your final balance is <strong>$100.00</strong>!</p>
+                    <p>Thank you for playing. You can now proceed to withdraw your earnings if you haven't already.</p>
+                    <button id="final-withdraw-btn" class="btn">Withdraw Now</button>
+                    <button id="final-logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- ADMIN SCREENS -->
+        <footer id="admin-section">
+            <div id="admin-login-screen" class="screen">
+                <div class="form-container">
+                    <h2>Admin Login</h2>
+                    <p id="admin-error" class="error-msg"></p>
+                    <input type="password" id="admin-password" placeholder="Admin Password">
+                    <button id="admin-login-btn" class="btn">Login</button>
+                    <p class="link" onclick="showScreen('auth-screen')">Back to User Login</p>
+                </div>
+            </div>
+            
+            <div id="admin-dashboard-screen" class="screen">
+                <div style="width:100%; text-align:left; margin-bottom: 10px;">
+                    <button id="admin-logout-btn" class="btn btn-secondary">Admin Logout</button>
+                </div>
+                <h2>Admin Dashboard</h2>
+                <p>Total Participants: <span id="total-participants">0</span></p>
+                <div style="width:100%; max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Balance ($)</th>
+                                <th>Completed Phases</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participants-table">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <p id="admin-link">Admin Access</p>
+        </footer>
+
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+    // --- DOM ELEMENTS ---
+    const screens = document.querySelectorAll('.screen');
+    const appMain = document.getElementById('app-main');
+    const adminSection = document.getElementById('admin-section');
+    
+    // Auth
+    const authScreen = document.getElementById('auth-screen');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const showLoginBtn = document.getElementById('show-login-btn');
+    const showSignupBtn = document.getElementById('show-signup-btn');
+
+    // Dashboard
+    const dashboardScreen = document.getElementById('dashboard-screen');
+    const dashUsername = document.getElementById('dash-username');
+    const dashPhase = document.getElementById('dash-phase');
+    const dashBalance = document.getElementById('dash-balance');
+    const nairaEquivalent = document.getElementById('naira-equivalent');
+    const dashboardContent = document.getElementById('dashboard-content');
+    
+    // Quiz
+    const instructionsScreen = document.getElementById('instructions-screen');
+    const quizContainer = document.getElementById('quiz-container');
+    const questionCounterEl = document.getElementById('question-counter');
+    const timerEl = document.getElementById('timer');
+    const questionTextEl = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+
+    // Results & Others
+    const phaseResultScreen = document.getElementById('phase-result-screen');
+    const withdrawalScreen = document.getElementById('withdrawal-screen');
+    const finalCompletionScreen = document.getElementById('final-completion-screen');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // Admin
+    const adminLink = document.getElementById('admin-link');
+    const adminLoginScreen = document.getElementById('admin-login-screen');
+    const adminDashboardScreen = document.getElementById('admin-dashboard-screen');
+    const adminLoginBtn = document.getElementById('admin-login-btn');
+    const adminLogoutBtn = document.getElementById('admin-logout-btn');
+    const totalParticipantsEl = document.getElementById('total-participants');
+    const participantsTable = document.getElementById('participants-table');
+    
+    // --- CONFIG & STATE ---
+    const NGN_EXCHANGE_RATE = 1450;
+    const TOTAL_PHASES = 20;
+    const QUESTIONS_PER_PHASE = 20;
+    const PASS_PERCENTAGE = 0.5;
+    const REWARD_PER_PHASE = 5;
+    const WITHDRAWAL_UNLOCK_PHASE = 5;
+    const ADMIN_PASSWORD = "admin";
+
+    let state = {
+        currentUser: null,
+        users: {},
+        currentPhase: 1,
+        currentQuestionIndex: 0,
+        score: 0,
+        timer: 60,
+        timerInterval: null,
+        isAdmin: false
+    };
+
+    // --- QUESTION BANK ---
+    // A sample of 40 questions. For a full 20-phase quiz, this array should have 400 unique questions.
+    // The getQuestionsForPhase function will cycle through these.
+    const questionBank = [
+        { q: "What is the capital of Australia?", o: ["Sydney", "Melbourne", "Canberra", "Perth"], a: "Canberra" },
+        { q: "Who wrote 'Hamlet'?", o: ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"], a: "William Shakespeare" },
+        { q: "What is the chemical symbol for gold?", o: ["Au", "Ag", "G", "Go"], a: "Au" },
+        { q: "In which year did the Titanic sink?", o: ["1905", "1912", "1918", "1923"], a: "1912" },
+        { q: "What is the largest planet in our solar system?", o: ["Earth", "Mars", "Jupiter", "Saturn"], a: "Jupiter" },
+        { q: "Which element has the atomic number 1?", o: ["Helium", "Oxygen", "Hydrogen", "Nitrogen"], a: "Hydrogen" },
+        { q: "Who painted the Mona Lisa?", o: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"], a: "Leonardo da Vinci" },
+        { q: "What is the hardest natural substance on Earth?", o: ["Gold", "Iron", "Diamond", "Quartz"], a: "Diamond" },
+        { q: "What is the currency of Japan?", o: ["Yuan", "Won", "Yen", "Rupee"], a: "Yen" },
+        { q: "How many continents are there?", o: ["5", "6", "7", "8"], a: "7" },
+        { q: "Which country is known as the Land of the Rising Sun?", o: ["China", "Japan", "Thailand", "South Korea"], a: "Japan" },
+        { q: "What is the longest river in the world?", o: ["Amazon River", "Nile River", "Yangtze River", "Mississippi River"], a: "Nile River" },
+        { q: "Who discovered penicillin?", o: ["Marie Curie", "Albert Einstein", "Isaac Newton", "Alexander Fleming"], a: "Alexander Fleming" },
+        { q: "What is the main ingredient in guacamole?", o: ["Tomato", "Avocado", "Onion", "Lime"], a: "Avocado" },
+        { q: "How many bones are in the adult human body?", o: ["206", "212", "300", "198"], a: "206" },
+        { q: "Which planet is known as the Red Planet?", o: ["Venus", "Mars", "Jupiter", "Mercury"], a: "Mars" },
+        { q: "What is the largest ocean on Earth?", o: ["Atlantic", "Indian", "Arctic", "Pacific"], a: "Pacific" },
+        { q: "In what country would you find the Eiffel Tower?", o: ["Italy", "Spain", "France", "Germany"], a: "France" },
+        { q: "Who was the first person to step on the moon?", o: ["Buzz Aldrin", "Yuri Gagarin", "Neil Armstrong", "Michael Collins"], a: "Neil Armstrong" },
+        { q: "What is the boiling point of water at sea level in Celsius?", o: ["90°C", "100°C", "110°C", "120°C"], a: "100°C" },
+        { q: "What is the largest mammal in the world?", o: ["Elephant", "Blue Whale", "Giraffe", "Great White Shark"], a: "Blue Whale" },
+        { q: "Who is the author of the Harry Potter series?", o: ["J.R.R. Tolkien", "George R.R. Martin", "J.K. Rowling", "Stephen King"], a: "J.K. Rowling" },
+        { q: "What is the capital of Canada?", o: ["Toronto", "Vancouver", "Montreal", "Ottawa"], a: "Ottawa" },
+        { q: "What is the primary language spoken in Brazil?", o: ["Spanish", "Brazilian", "Portuguese", "French"], a: "Portuguese" },
+        { q: "Which of these is a programming language?", o: ["Bison", "Python", "Viper", "Anaconda"], a: "Python" },
+        { q: "What is the square root of 144?", o: ["10", "11", "12", "13"], a: "12" },
+        { q: "Which famous scientist developed the theory of relativity?", o: ["Isaac Newton", "Galileo Galilei", "Albert Einstein", "Nikola Tesla"], a: "Albert Einstein" },
+        { q: "What does 'HTTP' stand for?", o: ["HyperText Transfer Protocol", "High-Text Transfer Protocol", "HyperText Transmission Process", "Hyperlink Text Transfer Page"], a: "HyperText Transfer Protocol" },
+        { q: "Mount Everest is located in which mountain range?", o: ["The Andes", "The Rockies", "The Alps", "The Himalayas"], a: "The Himalayas" },
+        { q: "What is the national sport of Japan?", o: ["Karate", "Judo", "Sumo Wrestling", "Kendo"], a: "Sumo Wrestling" },
+        { q: "Which artist cut off his own ear?", o: ["Pablo Picasso", "Salvador Dalí", "Vincent van Gogh", "Claude Monet"], a: "Vincent van Gogh" },
+        { q: "What is the capital city of Nigeria?", o: ["Lagos", "Kano", "Abuja", "Ibadan"], a: "Abuja" },
+        { q: "Which two metals is bronze an alloy of?", o: ["Copper and Zinc", "Copper and Tin", "Iron and Carbon", "Aluminum and Magnesium"], a: "Copper and Tin" },
+        { q: "What is the speed of light?", o: ["300,000 km/s", "150,000 km/s", "500,000 km/s", "1,000,000 km/s"], a: "300,000 km/s" },
+        { q: "In Greek mythology, who is the god of the sea?", o: ["Zeus", "Hades", "Poseidon", "Ares"], a: "Poseidon" },
+        { q: "What is the most spoken language in the world?", o: ["English", "Spanish", "Mandarin Chinese", "Hindi"], a: "Mandarin Chinese" },
+        { q: "What is the smallest country in the world?", o: ["Monaco", "Nauru", "Vatican City", "San Marino"], a: "Vatican City" },
+        { q: "Who invented the telephone?", o: ["Thomas Edison", "Nikola Tesla", "Alexander Graham Bell", "Guglielmo Marconi"], a: "Alexander Graham Bell" },
+        { q: "What is the chemical formula for table salt?", o: ["H2O", "CO2", "NaCl", "C6H12O6"], a: "NaCl" },
+        { q: "Which of the following is not a primary color?", o: ["Red", "Yellow", "Blue", "Green"], a: "Green" },
+        
+    ];
+    
+    // --- HELPER FUNCTIONS ---
+    
+    const saveData = () => {
+        localStorage.setItem('lectaQuizUsers', JSON.stringify(state.users));
+        localStorage.setItem('lectaQuizCurrentUser', state.currentUser);
+        localStorage.setItem('lectaQuizAdmin', state.isAdmin);
+    };
+
+    const loadData = () => {
+        const users = JSON.parse(localStorage.getItem('lectaQuizUsers')) || {};
+        const currentUser = localStorage.getItem('lectaQuizCurrentUser');
+        const isAdmin = JSON.parse(localStorage.getItem('lectaQuizAdmin')) || false;
+        state = { ...state, users, currentUser, isAdmin };
+    };
+
+    const showScreen = (screenId) => {
+        screens.forEach(screen => screen.classList.remove('active'));
+        adminSection.style.display = 'none';
+        appMain.style.display = 'none';
+        
+        const targetScreen = document.getElementById(screenId);
+        if (targetScreen.parentElement.id === 'admin-section') {
+            adminSection.style.display = 'block';
+        } else {
+            appMain.style.display = 'block';
+        }
+
+        targetScreen.classList.add('active');
+    };
+
+    const setErrorMessage = (form, message) => {
+        const errorEl = document.getElementById(`${form}-error`);
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.style.color = 'red';
+            setTimeout(() => { errorEl.textContent = ''; }, 3000);
+        }
+    };
+
+    // --- BUBBLE ANIMATION ---
+    const createBubbles = () => {
+        const bubbleContainer = document.getElementById('bubble-container');
+        for (let i = 0; i < 15; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = Math.random() * 40 + 20; // 20px to 60px
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}%`;
+            bubble.style.bottom = `-${size}px`;
+            bubble.style.animationDelay = `${Math.random() * 2}s`;
+            bubble.style.animationDuration = `${Math.random() * 3 + 3}s`; // 3s to 6s
+            bubbleContainer.appendChild(bubble);
+        }
+        setTimeout(() => {
+            bubbleContainer.innerHTML = '';
+        }, 5000);
+    };
+
+    // --- AUTHENTICATION ---
+
+    showLoginBtn.addEventListener('click', () => {
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+        showLoginBtn.classList.add('active');
+        showSignupBtn.classList.remove('active');
+    });
+
+    showSignupBtn.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        showLoginBtn.classList.remove('active');
+        showSignupBtn.classList.add('active');
+    });
+
+    signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('signup-username').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const passwordConfirm = document.getElementById('signup-password-confirm').value;
+
+        if (!username || !password) return setErrorMessage('signup', 'All fields are required.');
+        if (password !== passwordConfirm) return setErrorMessage('signup', 'Passwords do not match.');
+        if (state.users[username]) return setErrorMessage('signup', 'Username already exists.');
+
+        state.users[username] = {
+            password: password,
+            balance: 0,
+            completedPhases: 0,
+        };
+        alert('Registration successful! Please log in.');
+        signupForm.reset();
+        showLoginBtn.click();
+        saveData();
+    });
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+        
+        if (!state.users[username] || state.users[username].password !== password) {
+            return setErrorMessage('login', 'Invalid username or password.');
+        }
+
+        state.currentUser = username;
+        saveData();
+        initUserSession();
+    });
+
+    logoutBtn.addEventListener('click', logout);
+    document.getElementById('final-logout-btn').addEventListener('click', logout);
+
+    function logout() {
+        state.currentUser = null;
+        saveData();
+        showScreen('auth-screen');
+    }
+    
+    // --- ADMIN LOGIC ---
+    adminLink.addEventListener('click', () => showScreen('admin-login-screen'));
+    adminLoginBtn.addEventListener('click', () => {
+        const pass = document.getElementById('admin-password').value;
+        if (pass === ADMIN_PASSWORD) {
+            state.isAdmin = true;
+            saveData();
+            loadAdminDashboard();
+        } else {
+            alert('Incorrect admin password');
+        }
+    });
+    
+    adminLogoutBtn.addEventListener('click', () => {
+        state.isAdmin = false;
+        saveData();
+        showScreen('auth-screen');
+    });
+
+    function loadAdminDashboard() {
+        totalParticipantsEl.textContent = Object.keys(state.users).length;
+        participantsTable.innerHTML = '';
+        for (const username in state.users) {
+            const user = state.users[username];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${username}</td>
+                <td>$${user.balance.toFixed(2)}</td>
+                <td>${user.completedPhases}</td>
+            `;
+            participantsTable.appendChild(row);
+        }
+        showScreen('admin-dashboard-screen');
+    }
+    
+    // --- MAIN APP FLOW ---
+
+    function initUserSession() {
+        if (state.currentUser && state.users[state.currentUser]) {
+            updateDashboard();
+            showScreen('dashboard-screen');
+        } else if (state.isAdmin) {
+            loadAdminDashboard();
+        } else {
+            showScreen('auth-screen');
+        }
+    }
+
+    function updateDashboard() {
+        const user = state.users[state.currentUser];
+        if (!user) return logout();
+
+        if (user.completedPhases >= TOTAL_PHASES) {
+            return showScreen('final-completion-screen');
+        }
+
+        dashUsername.textContent = state.currentUser;
+        dashPhase.textContent = user.completedPhases + 1;
+        dashBalance.textContent = `$${user.balance.toFixed(2)}`;
+        nairaEquivalent.textContent = `(~ ₦${(user.balance * NGN_EXCHANGE_RATE).toLocaleString()})`;
+        
+        dashboardContent.innerHTML = '';
+        quizContainer.style.display = 'none';
+
+        const mainButton = document.createElement('button');
+        mainButton.className = 'btn';
+        mainButton.textContent = `Start Phase ${user.completedPhases + 1}`;
+        mainButton.onclick = () => showScreen('instructions-screen');
+
+        dashboardContent.appendChild(mainButton);
+        
+        if (user.completedPhases >= WITHDRAWAL_UNLOCK_PHASE) {
+            const withdrawButton = document.createElement('button');
+            withdrawButton.className = 'btn btn-secondary';
+            withdrawButton.textContent = 'Withdraw Funds';
+            withdrawButton.onclick = () => showScreen('withdrawal-screen');
+            dashboardContent.appendChild(withdrawButton);
+        }
+    }
+
+    document.getElementById('start-quiz-btn').addEventListener('click', startPhase);
+
+    function startPhase() {
+        const user = state.users[state.currentUser];
+        state.currentPhase = user.completedPhases + 1;
+        state.currentQuestionIndex = 0;
+        state.score = 0;
+        
+        showScreen('dashboard-screen');
+        dashboardContent.style.display = 'none';
+        quizContainer.style.display = 'block';
+        
+        loadQuestion();
+    }
+    
+    function getQuestionsForPhase(phase) {
+        // This function "recycles" questions from the bank
+        const questions = [];
+        // Use modulo to cycle through the bank, ensuring different phases get different sets
+        const start = ((phase - 1) * QUESTIONS_PER_PHASE) % questionBank.length;
+        for (let i = 0; i < QUESTIONS_PER_PHASE; i++) {
+            questions.push(questionBank[(start + i) % questionBank.length]);
+        }
+        // Shuffle for variety
+        return questions.sort(() => Math.random() - 0.5);
+    }
+    
+    let currentPhaseQuestions = [];
+
+    function loadQuestion() {
+        clearInterval(state.timerInterval);
+        
+        if (state.currentQuestionIndex === 0) {
+            currentPhaseQuestions = getQuestionsForPhase(state.currentPhase);
+        }
+
+        if (state.currentQuestionIndex >= QUESTIONS_PER_PHASE) {
+            return endPhase();
+        }
+
+        const question = currentPhaseQuestions[state.currentQuestionIndex];
+        questionCounterEl.textContent = `Question ${state.currentQuestionIndex + 1}/${QUESTIONS_PER_PHASE}`;
+        questionTextEl.textContent = question.q;
+        optionsContainer.innerHTML = '';
+
+        const shuffledOptions = [...question.o].sort(() => Math.random() - 0.5);
+
+        shuffledOptions.forEach(optionText => {
+            const optionEl = document.createElement('div');
+            optionEl.className = 'option';
+            optionEl.textContent = optionText;
+            optionEl.onclick = () => selectAnswer(optionEl, optionText, question.a);
+            optionsContainer.appendChild(optionEl);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        state.timer = 60;
+        timerEl.textContent = state.timer;
+        timerEl.style.color = 'var(--primary-color)';
+
+        state.timerInterval = setInterval(() => {
+            state.timer--;
+            timerEl.textContent = state.timer;
+            if (state.timer <= 10) {
+                timerEl.style.color = 'var(--incorrect-color)';
+            }
+            if (state.timer <= 0) {
+                clearInterval(state.timerInterval);
+                nextQuestion();
+            }
+        }, 1000);
+    }
+
+    function selectAnswer(optionEl, selectedAnswer, correctAnswer) {
+        clearInterval(state.timerInterval);
+        
+        // Disable all options
+        Array.from(optionsContainer.children).forEach(child => {
+            child.onclick = null;
+            if (child.textContent === correctAnswer) {
+                child.classList.add('correct');
+            }
+        });
+
+        if (selectedAnswer === correctAnswer) {
+            state.score++;
+            createBubbles();
+        } else {
+            optionEl.classList.add('incorrect');
+        }
+        
+        setTimeout(nextQuestion, 1500); // Wait 1.5s before next question
+    }
+    
+    function nextQuestion() {
+        state.currentQuestionIndex++;
+        loadQuestion();
+    }
+
+    function endPhase() {
+        const user = state.users[state.currentUser];
+        const resultMsgEl = document.getElementById('phase-result-message');
+        const resultScoreEl = document.getElementById('phase-result-score');
+        const resultInfoEl = document.getElementById('phase-result-info');
+        const nextBtn = document.getElementById('next-phase-btn');
+        
+        const percentage = state.score / QUESTIONS_PER_PHASE;
+        
+        if (percentage >= PASS_PERCENTAGE) {
+            user.completedPhases++;
+            user.balance += REWARD_PER_PHASE;
+            
+            resultMsgEl.textContent = "Congratulations!";
+            resultMsgEl.style.color = 'var(--correct-color)';
+            resultInfoEl.textContent = `You passed Phase ${state.currentPhase - 1} and earned $${REWARD_PER_PHASE.toFixed(2)}!`;
+            nextBtn.textContent = (user.completedPhases >= TOTAL_PHASES) ? "Finish Quiz" : `Proceed to Phase ${user.completedPhases + 1}`;
+            nextBtn.onclick = () => {
+                if (user.completedPhases >= TOTAL_PHASES) {
+                    showScreen('final-completion-screen');
+                } else {
+                    initUserSession();
+                }
+            };
+        } else {
+            resultMsgEl.textContent = "Phase Failed";
+            resultMsgEl.style.color = 'var(--incorrect-color)';
+            resultInfoEl.textContent = `You needed to score 50% or more to pass. Please try again.`;
+            nextBtn.textContent = `Retry Phase ${state.currentPhase}`;
+            nextBtn.onclick = initUserSession;
+        }
+
+        resultScoreEl.textContent = `You scored ${state.score} out of ${QUESTIONS_PER_PHASE} (${(percentage * 100).toFixed(0)}%).`;
+        saveData();
+        showScreen('phase-result-screen');
+        dashboardContent.style.display = 'block';
+    }
+    
+    // --- WITHDRAWAL LOGIC ---
+    document.getElementById('withdrawal-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Your bank account details have been submitted for review. Your account will be credited in 24-48hrs. Kindly wait patiently.');
+        document.getElementById('withdrawal-form').reset();
+        initUserSession();
+    });
+    
+    document.getElementById('back-to-dash-btn').addEventListener('click', initUserSession);
+    document.getElementById('final-withdraw-btn').addEventListener('click', () => showScreen('withdrawal-screen'));
+
+    // --- INITIALIZATION ---
+    loadData();
+    initUserSession();
+});
+
+
+    </script>
+</body>
+</html>
